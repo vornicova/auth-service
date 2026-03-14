@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  auth-db:
+    image: postgres:16
+    container_name: auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cake_factory_db
+      POSTGRES_USER: cake_user
+      POSTGRES_PASSWORD: cake
+    ports:
+      - "5438:5432"
+    volumes:
+      - auth_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cake_user -d cake_factory_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth_pg_data:

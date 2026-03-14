@@ -1,25 +1,30 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.AuthRequest;
+import com.example.demo.dto.AuthResponse;
+import com.example.demo.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
-import org.openapitools.model.AuthRequest;
-import org.openapitools.model.AuthResponse;
+
 import com.example.demo.entity.UserEntity;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     public AuthResponse register(AuthRequest request) {
@@ -34,7 +39,12 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
-        return userMapper.toDto(user);
+        String token = jwtUtil.generateToken(user.getUsername());
+
+        AuthResponse dto = userMapper.toDto(user);
+        dto.setToken(token);
+
+        return dto;
     }
 
     @Override
@@ -47,16 +57,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse login(AuthRequest request) {
+        UserEntity user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!matches) {
+            throw new IllegalArgumentException("Invalid username or password");
+        }
 
-        UserEntity user = userRepository.findByUsername(request.getUsername()).get();
-        return userMapper.toDto(user);
+        String token = jwtUtil.generateToken(user.getUsername());
+
+        AuthResponse dto = userMapper.toDto(user);
+        dto.setToken(token);
+
+        return dto;
     }
 
 }

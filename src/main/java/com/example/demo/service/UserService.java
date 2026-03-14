@@ -1,7 +1,8 @@
 package com.example.demo.service;
 
-import org.openapitools.model.AuthRequest;
-import org.openapitools.model.AuthResponse;
+
+import com.example.demo.dto.AuthRequest;
+import com.example.demo.dto.AuthResponse;
 
 public interface UserService {
     AuthResponse register(AuthRequest request);

@@ -2,10 +2,12 @@ openapi: 3.0.3
 info:
   title: Auth API
   version: 1.0.0
+
 paths:
   /auth/register:
     post:
       summary: Register new user
+      operationId: registerUser
       requestBody:
         required: true
         content:
@@ -19,10 +21,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
+
   /auth/login:
     post:
       summary: Login user
-      operationId: authLoginPost
+      operationId: loginUser
       requestBody:
         required: true
         content:
@@ -36,6 +39,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
+
 components:
   schemas:
     AuthRequest:
@@ -48,12 +52,16 @@ components:
       required:
         - username
         - password
+
     AuthResponse:
       type: object
       properties:
         id:
           type: integer
+          format: int64
         username:
           type: string
         role:
+          type: string
+        token:
           type: string
