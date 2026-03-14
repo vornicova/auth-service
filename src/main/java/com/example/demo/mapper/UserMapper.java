@@ -1,14 +1,25 @@
 package com.example.demo.mapper;
 
-import org.mapstruct.Mapper;
-import org.openapitools.model.AuthRequest;
-import org.openapitools.model.AuthResponse;
+import com.example.demo.dto.AuthRequest;
+import com.example.demo.dto.AuthResponse;
 import com.example.demo.entity.UserEntity;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper {
+@Component
+public class UserMapper {
 
-    AuthResponse toDto(UserEntity user);
+    public AuthResponse toDto(UserEntity user) {
+        AuthResponse response = new AuthResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setRole(user.getRole());
+        return response;
+    }
 
-    UserEntity toEntity(AuthRequest dto);
+    public UserEntity toEntity(AuthRequest dto) {
+        UserEntity user = new UserEntity();
+        user.setUsername(dto.getUsername());
+        user.setPassword(dto.getPassword());
+        return user;
+    }
 }
