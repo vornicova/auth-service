@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.AuthRequest;
 import com.example.demo.dto.AuthResponse;
+import com.example.demo.kafka.event.UserCreatedEvent;
+import com.example.demo.kafka.producer.UserKafkaProducer;
 import com.example.demo.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
@@ -14,12 +16,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private final UserKafkaProducer producer;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserKafkaProducer producer, UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+        this.producer = producer;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
@@ -37,7 +41,15 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole("USER");
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+
+        producer.sendUserCreated(
+                UserCreatedEvent.builder()
+                        .authUserId(user.getId())
+                        .username(user.getUsername())
+                        .role(user.getRole())
+                        .build()
+        );
 
         String token = jwtUtil.generateToken(user.getUsername());
 
