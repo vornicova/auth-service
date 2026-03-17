@@ -1,7 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-        import lombok.*;
+import lombok.*;
 
 @Entity
 @Table(name = "users")
@@ -17,10 +17,14 @@ public class UserEntity {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String email;
 
     @Column(nullable = false)
     private String password;
+
+    private String phone;
+
+    private String fullName;
 
     @Column(nullable = false)
     private String role;

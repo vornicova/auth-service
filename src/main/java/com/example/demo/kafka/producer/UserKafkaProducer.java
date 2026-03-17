@@ -13,6 +13,6 @@ public class UserKafkaProducer {
     private final KafkaTemplate<String, UserCreatedEvent> kafkaTemplate;
 
     public void sendUserCreated(UserCreatedEvent event) {
-        kafkaTemplate.send("user-created", event.getUsername(), event);
+        kafkaTemplate.send("user-created", event.getEmail(), event);
     }
 }
