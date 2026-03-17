@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthResponse register(AuthRequest request) {
 
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("User already exists");
         }
 
@@ -46,12 +46,14 @@ public class UserServiceImpl implements UserService {
         producer.sendUserCreated(
                 UserCreatedEvent.builder()
                         .authUserId(user.getId())
-                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
                         .role(user.getRole())
+                        .phone(user.getPhone())
                         .build()
         );
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getEmail());
 
         AuthResponse dto = userMapper.toDto(user);
         dto.setToken(token);
@@ -61,7 +63,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse getByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return userMapper.toDto(user);
@@ -69,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse login(AuthRequest request) {
-        UserEntity user = userRepository.findByUsername(request.getUsername())
+        UserEntity user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
@@ -77,7 +79,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getEmail());
 
         AuthResponse dto = userMapper.toDto(user);
         dto.setToken(token);

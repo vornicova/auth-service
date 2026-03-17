@@ -16,9 +16,9 @@ public class UserDetailsConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
+        return username -> userRepository.findByEmail(username)
                 .map(user -> User.builder()
-                        .username(user.getUsername())
+                        .username(user.getEmail())
                         .password(user.getPassword())
                         .authorities(user.getRole())
                         .build())
